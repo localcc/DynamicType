@@ -8,6 +8,8 @@ namespace dt = DynamicType;
 struct TEitherTest_Data
 {
   public:
+    using DataType = TEitherTest_Data;
+
     static struct
     {
         bool IsDouble;

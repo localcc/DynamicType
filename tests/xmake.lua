@@ -3,6 +3,8 @@ add_requires("gtest")
 target("TSingle")
     set_kind("binary")
     set_languages("cxx23")
+    
+    set_exceptions("cxx")
 
     set_default("false")
     add_files("TSingle.cpp")
@@ -17,6 +19,8 @@ target("TSingle")
 target("TOption")
     set_kind("binary")
     set_languages("cxx23")
+
+    set_exceptions("cxx")
 
     set_default("false")
     add_files("TOption.cpp")

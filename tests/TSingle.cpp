@@ -7,6 +7,8 @@ namespace dt = DynamicType;
 struct TSingleTest_Data
 {
   public:
+    using DataType = TSingleTest_Data;
+
     static struct
     {
         dt::FieldData FirstField;
@@ -32,7 +34,20 @@ struct TSingleTest_Data
 
 decltype(TSingleTest_Data::Offsets) TSingleTest_Data::Offsets = {};
 
-using TSingleTest = dt::TDynamicallySized<TSingleTest_Data>;
+struct TSingleTest_Constructor : TSingleTest_Data
+{
+    TSingleTest_Constructor()
+    {
+    }
+
+    TSingleTest_Constructor(int32_t First, int32_t Second)
+    {
+        this->FirstField = First;
+        this->SecondField = Second;
+    }
+};
+
+using TSingleTest = dt::TDynamicallySized<TSingleTest_Constructor>;
 
 TEST(TSingle, Default)
 {

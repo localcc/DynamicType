@@ -16,6 +16,8 @@ target("DynamicType")
 
     add_extrafiles(".clang-format")
 
+    add_cxxflags("/Zc:preprocessor", { tools = { "clang_cl", "cl" }, public = true })
+
     add_packages("reflect", { public = true })
 
 includes("tests")

@@ -3,10 +3,96 @@
 #include <print>
 
 using namespace DynamicType;
+//
+// struct OptionTest_Data
+// {
+//     static struct
+//     {
+//         bool IsPresent;
+//     } Settings;
+//     static struct
+//     {
+//         FieldData TestField;
+//         size_t Size;
+//     } Offsets;
+//
+//   public:
+//     TOption<double, &Offsets.TestField, &Settings.IsPresent> TestField;
+//
+//   public:
+//     static void InitializeOffsets()
+//     {
+//         Offsets.Size = DynamicType::InitializeOffsets<OptionTest_Data>();
+//     }
+//
+//     static size_t DynamicSize()
+//     {
+//         return Offsets.Size;
+//     }
+// };
+//
+// decltype(OptionTest_Data::Settings) OptionTest_Data::Settings = {};
+// decltype(OptionTest_Data::Offsets) OptionTest_Data::Offsets = {};
+//
+// using OptionTest = TDynamicallySized<OptionTest_Data>;
+//
+// struct ConstructorTest
+// {
+//     double Value = 0.0;
+//
+//     ConstructorTest()
+//     {
+//     }
+//     ConstructorTest(double Value)
+//     {
+//         this->Value = Value;
+//     }
+// };
+//
+// struct SingleTest_Data
+// {
+//     static struct
+//     {
+//         FieldData TestField;
+//         size_t Size;
+//     } Offsets;
+//
+//   public:
+//     TSingle<double, &Offsets.TestField> TestField;
+//
+//   public:
+//     static void InitializeOffsets()
+//     {
+//         Offsets.Size = DynamicType::InitializeOffsets<SingleTest_Data>();
+//     }
+//
+//     static size_t DynamicSize()
+//     {
+//         return Offsets.Size;
+//     }
+// };
+//
+// decltype(SingleTest_Data::Offsets) SingleTest_Data::Offsets = {};
+//
+// struct SingleTest_Constructor : public SingleTest_Data
+// {
+//     SingleTest_Constructor()
+//     {
+//     }
+//
+//     SingleTest_Constructor(double Value)
+//     {
+//         this->TestField = Value;
+//     }
+// };
+//
+// using SingleTest = TDynamicallySized<SingleTest_Constructor>;
 
 struct FVector_Data
 {
   public:
+    using DataType = FVector_Data;
+
     static struct
     {
         bool IsPlus500 = false;
@@ -39,80 +125,32 @@ struct FVector_Data
 decltype(FVector_Data::Settings) FVector_Data::Settings = {};
 decltype(FVector_Data::Offsets) FVector_Data::Offsets = {};
 
-using FVector = TDynamicallySized<FVector_Data>;
-
-void PrintVec(const FVector& Vec)
+struct FVector_Constructor : public FVector_Data
 {
-    std::print("X: {}, Y: {}, Z: {}\n", *Vec.x, *Vec.y, *Vec.z);
-}
-
-struct OptionTest_Data
-{
-    static struct
+    FVector_Constructor()
     {
-        bool IsPresent;
-    } Settings;
-    static struct
-    {
-        FieldData TestField;
-        size_t Size;
-    } Offsets;
-
-  public:
-    TOption<double, &Offsets.TestField, &Settings.IsPresent> TestField;
-
-  public:
-    static void InitializeOffsets()
-    {
-        Offsets.Size = DynamicType::InitializeOffsets<OptionTest_Data>();
     }
 
-    static size_t DynamicSize()
+    FVector_Constructor(double X, double Y, double Z)
     {
-        return Offsets.Size;
+        this->x.Set(X);
+        this->y.Set(Y);
+        this->z.Set(Z);
     }
 };
 
-decltype(OptionTest_Data::Settings) OptionTest_Data::Settings = {};
-decltype(OptionTest_Data::Offsets) OptionTest_Data::Offsets = {};
-
-using OptionTest = TDynamicallySized<OptionTest_Data>;
-
-struct SingleTest_Data
-{
-    static struct
-    {
-        FieldData TestField;
-        size_t Size;
-    } Offsets;
-
-  public:
-    TSingle<double, &Offsets.TestField> TestField;
-
-  public:
-    static void InitializeOffsets()
-    {
-        Offsets.Size = DynamicType::InitializeOffsets<SingleTest_Data>();
-    }
-
-    static size_t DynamicSize()
-    {
-        return Offsets.Size;
-    }
-};
-
-decltype(SingleTest_Data::Offsets) SingleTest_Data::Offsets = {};
-
-using SingleTest = TDynamicallySized<SingleTest_Data>;
+using FVector = TDynamicallySized<FVector_Constructor>;
 
 int main(int argc, char** argv)
 {
-    SingleTest::InitializeOffsets();
+    FVector::InitializeOffsets();
 
-    TDynamicTypeInstance<SingleTest> Test{};
-    Test->TestField.Set(123.0);
-    std::print("Test: {}\n", *Test->TestField);
+    TDynamicTypeInstance<FVector> Test = DT_STACKALLOC(FVector, 0, 150.0, 250.0f);
+    std::print("X: {}, Y: {}, Z: {}\n", *Test->x, *Test->y, *Test->z);
 
+    Test->x.Set(1400.0f);
+
+    std::print("X: {}, Y: {}, Z: {}\n", *Test->x, *Test->y, *Test->z);
     //     OptionTest::Settings.IsPresent = true;
     //     OptionTest::InitializeOffsets();
     //

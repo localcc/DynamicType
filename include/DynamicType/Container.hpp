@@ -11,12 +11,27 @@
  *
  * An instance allocated like this will get destroyed upon exiting from the stack frame
  */
-#define DT_STACKALLOC(ty) DynamicType::TDynamicTypeInstance<ty>(reinterpret_cast<ty*>(alloca(ty::DynamicSize())));
+#define DT_STACKALLOC(ty, ...) DynamicType::TDynamicTypeInstance<ty>::PlacementNew(reinterpret_cast<ty*>(alloca(ty::DynamicSize())) __VA_OPT__(, ) __VA_ARGS__)
 
 namespace DynamicType
 {
     /**
-     * @brief Initialize offsets of a dynamically sized types
+     * @brief Validate a dynamically sized type
+     */
+    template <typename T>
+        requires DynamicallySized<T>
+    constexpr bool ValidateType()
+    {
+        size_t FieldCount = 0;
+        reflect::for_each<T>([&FieldCount](auto I) {
+            FieldCount += 1;
+        });
+
+        return (FieldCount == sizeof(T)) ? true : throw "DynamicSize type must only have type selectors as fields.";
+    }
+
+    /**
+     * @brief Initialize offsets of a dynamically sized type
      *
      * @return Final size of the container
      */
@@ -24,6 +39,8 @@ namespace DynamicType
         requires DynamicallySized<T> && std::is_constructible_v<T>
     size_t InitializeOffsets()
     {
+        constexpr bool Valid = ValidateType<T>();
+
         size_t RunningOffset = 0;
         size_t FinalSize = 0;
 
@@ -51,8 +68,17 @@ namespace DynamicType
     class TDynamicallySized : public T
     {
       public:
-        TDynamicallySized() = delete;
+        template <typename... CArgs>
+        TDynamicallySized(CArgs... Args) = delete;
+
+        using Inner = T;
     };
+
+    namespace detail
+    {
+        template <typename T>
+        concept DynamicallySizedWrapper = std::same_as<T, TDynamicallySized<typename T::Inner>>;
+    }
 
     /**
      * @brief An instance of a dynamically sized type
@@ -64,23 +90,31 @@ namespace DynamicType
      * @tparam T Underlying type
      */
     template <typename T>
-        requires DynamicallySized<T>
+        requires detail::DynamicallySizedWrapper<T>
     class TDynamicTypeInstance
     {
+      private:
+        using Value = T::Inner;
+
       public:
         /**
          * @brief Create a new instance of a dynamically sized type on the heap
          */
-        TDynamicTypeInstance() : m_Owns(true)
+        template <typename... CArgs>
+        TDynamicTypeInstance(CArgs... Args)
+            requires std::is_constructible_v<Value, CArgs...>
+            : m_Owns(true)
         {
-            void* Instance = ::operator new(T::DynamicSize());
+            void* Instance = ::operator new(Value::DynamicSize());
             if (!Instance)
             {
                 throw std::bad_alloc{};
             }
 
-            memset(Instance, 0, T::DynamicSize());
-            m_Instance = reinterpret_cast<T*>(Instance);
+            memset(Instance, 0, Value::DynamicSize());
+            new (Instance) Value(std::forward<CArgs>(Args)...);
+
+            m_Instance = reinterpret_cast<Value*>(Instance);
         }
 
         /**
@@ -89,7 +123,7 @@ namespace DynamicType
          * After constructing an instance using this constructor, the pointed object is **NOT** treated as owned,
          * meaning it won't be destroyed on destruction of this container
          */
-        TDynamicTypeInstance(T* Instance) : m_Instance(Instance), m_Owns(false)
+        TDynamicTypeInstance(Value* Instance) : m_Instance(Instance), m_Owns(false)
         {
         }
 
@@ -102,23 +136,32 @@ namespace DynamicType
         }
 
       public:
-        TDynamicTypeInstance(const TDynamicTypeInstance& Other)
+        /**
+         * @brief Use a placement new constructor for a dynamic type
+         *
+         * After constructing an instance using this constructor, the pointed object is **NOT** treated as owned,
+         * meaning it won't be destroyed on destruction of this container
+         */
+        template <typename... CArgs>
+        static TDynamicTypeInstance PlacementNew(void* Data, CArgs... Args)
         {
+            new (Data) Value(std::forward<CArgs>(Args)...);
+            return TDynamicTypeInstance(reinterpret_cast<Value*>(Data));
         }
 
       public:
-        T operator*()
+        Value operator*()
         {
             return *m_Instance;
         }
 
-        T* operator->()
+        Value* operator->()
         {
             return m_Instance;
         }
 
       private:
-        T* m_Instance = nullptr;
+        Value* m_Instance = nullptr;
         bool m_Owns = false;
     };
 } // namespace DynamicType

@@ -102,6 +102,8 @@ struct NonDefaultConstructible
 struct TOptionExceptionTest_Data
 {
   public:
+    using DataType = TOptionExceptionTest_Data;
+
     static struct
     {
         bool FieldPresent;

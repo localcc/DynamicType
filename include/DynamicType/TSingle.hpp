@@ -30,14 +30,20 @@ namespace DynamicType
             return *ReflectionData->GetValue<T, TSingle>(this);
         }
 
-        const T& operator->() const
+        const T* operator->() const
         {
-            return *ReflectionData->GetValue<T, TSingle>(this);
+            return ReflectionData->GetValue<T, TSingle>(this);
         }
 
       public:
         TSingle()
         {
+        }
+
+        TSingle(T Value)
+            requires std::is_move_assignable_v<T>
+        {
+            *ReflectionData->GetValue<T, TSingle>(this) = std::move(Value);
         }
 
         TSingle(const TSingle& Other)

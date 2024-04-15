@@ -13,6 +13,7 @@ namespace DynamicType
      * @tparam SwitchCondition condition for switching types
      */
     template <typename T1, typename T2, FieldData* ReflectionData, bool* SwitchCondition>
+        requires std::is_convertible_v<T1, T2> && std::is_convertible_v<T2, T1>
     class TEither
     {
       public:

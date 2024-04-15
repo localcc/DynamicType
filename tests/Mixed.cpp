@@ -7,6 +7,8 @@ namespace dt = DynamicType;
 struct TMixedTest_Data
 {
   public:
+    using DataType = TMixedTest_Data;
+
     static struct
     {
         bool EnableOption;

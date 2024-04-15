@@ -33,18 +33,18 @@ namespace DynamicType
         }
 
       private:
-        const T& GetValue() const
+        const T* GetValue() const
         {
             if (*IsPresent)
             {
-                return *ReflectionData->GetValue<T, TOption>(this);
+                return ReflectionData->GetValue<T, TOption>(this);
             }
             else
             {
                 if constexpr (std::is_default_constructible_v<T>)
                 {
                     static T DefaultInstance = {};
-                    return DefaultInstance;
+                    return &DefaultInstance;
                 }
                 else
                 {
@@ -61,11 +61,11 @@ namespace DynamicType
          *
          * * If the value supports default construction, returns a default value instance
          *
-         * * If the value doesn't support default construction,
+         * * If the value doesn't support default construction, throws bad_optional_access
          */
         const T& operator*() const
         {
-            return GetValue();
+            return *GetValue();
         }
 
         /**
@@ -75,9 +75,9 @@ namespace DynamicType
          *
          * * If the value supports default construction, returns a default value instance
          *
-         * * If the value doesn't support default construction,
+         * * If the value doesn't support default construction, throws bad_optional_access
          */
-        const T& operator->() const
+        const T* operator->() const
         {
             return GetValue();
         }
@@ -85,6 +85,15 @@ namespace DynamicType
       public:
         TOption()
         {
+        }
+
+        TOption(T Value)
+            requires std::is_move_assignable_v<T>
+        {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = std::move(Value);
+            }
         }
 
         TOption(const TOption& Other)
