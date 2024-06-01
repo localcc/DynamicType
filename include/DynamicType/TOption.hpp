@@ -33,11 +33,12 @@ namespace DynamicType
         }
 
       private:
-        const T* GetValue() const
+        template <typename Ret, typename Self>
+        Ret* GetValue(Self* self)
         {
             if (*IsPresent)
             {
-                return ReflectionData->GetValue<T, TOption>(this);
+                return ReflectionData->GetValue<T, TOption>(self);
             }
             else
             {
@@ -63,9 +64,37 @@ namespace DynamicType
          *
          * * If the value doesn't support default construction, throws bad_optional_access
          */
+        T& operator*()
+        {
+            return *GetValue<T>(this);
+        }
+
+        /**
+         * @brief Get the value inside of the container
+         *
+         * If the value is not present:
+         *
+         * * If the value supports default construction, returns a default value instance
+         *
+         * * If the value doesn't support default construction, throws bad_optional_access
+         */
+        T* operator->()
+        {
+            return GetValue(this);
+        }
+
+        /**
+         * @brief Get the value inside of the container
+         *
+         * If the value is not present:
+         *
+         * * If the value supports default construction, returns a default value instance
+         *
+         * * If the value doesn't support default construction, throws bad_optional_access
+         */
         const T& operator*() const
         {
-            return *GetValue();
+            return *GetValue<const T>(this);
         }
 
         /**
@@ -79,7 +108,7 @@ namespace DynamicType
          */
         const T* operator->() const
         {
-            return GetValue();
+            return GetValue(this);
         }
 
       public:

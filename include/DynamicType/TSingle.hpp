@@ -25,6 +25,16 @@ namespace DynamicType
         }
 
       public:
+        T& operator*()
+        {
+            return *ReflectionData->GetValue<T, TSingle>(this);
+        }
+
+        T* operator->()
+        {
+            return ReflectionData->GetValue<T, TSingle>(this);
+        }
+
         const T& operator*() const
         {
             return *ReflectionData->GetValue<T, TSingle>(this);

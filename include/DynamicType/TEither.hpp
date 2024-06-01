@@ -113,6 +113,7 @@ namespace DynamicType
             {
                 *ReflectionData->GetValue<T1>(this) = std::move(*ReflectionData->GetValue<T1>(&Other));
             }
+            return *this;
         }
 
       public:

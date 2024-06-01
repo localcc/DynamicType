@@ -94,7 +94,7 @@ namespace DynamicType
     class TDynamicTypeInstance
     {
       private:
-        using Value = T::Inner;
+        using Value = T;
 
       public:
         /**
@@ -145,12 +145,12 @@ namespace DynamicType
         template <typename... CArgs>
         static TDynamicTypeInstance PlacementNew(void* Data, CArgs... Args)
         {
-            new (Data) Value(std::forward<CArgs>(Args)...);
+            new (Data) Value::Inner(std::forward<CArgs>(Args)...);
             return TDynamicTypeInstance(reinterpret_cast<Value*>(Data));
         }
 
       public:
-        Value operator*()
+        Value& operator*()
         {
             return *m_Instance;
         }
