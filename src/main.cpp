@@ -93,37 +93,34 @@ struct FVector_Data
   public:
     using DataType = FVector_Data;
 
-    static struct
+    struct Settings
     {
-        bool IsPlus500 = false;
-    } Settings;
-    static struct
+        static inline bool IsPlus500 = false;
+    };
+    struct Offsets
     {
-        FieldData x;
-        FieldData y;
-        FieldData z;
-        size_t Size;
-    } Offsets;
+        static inline FieldData x;
+        static inline FieldData y;
+        static inline FieldData z;
+        static inline size_t Size;
+    };
 
   public:
-    TEither<float, double, &Offsets.x, &Settings.IsPlus500> x;
-    TEither<float, double, &Offsets.y, &Settings.IsPlus500> y;
-    TEither<float, double, &Offsets.z, &Settings.IsPlus500> z;
+    TEither<float, double, &Offsets::x, &Settings::IsPlus500> x;
+    TEither<float, double, &Offsets::y, &Settings::IsPlus500> y;
+    TEither<float, double, &Offsets::z, &Settings::IsPlus500> z;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = DynamicType::InitializeOffsets<FVector_Data>();
+        Offsets::Size = DynamicType::InitializeOffsets<FVector_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(FVector_Data::Settings) FVector_Data::Settings = {};
-decltype(FVector_Data::Offsets) FVector_Data::Offsets = {};
 
 struct FVector_Constructor : public FVector_Data
 {

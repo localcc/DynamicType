@@ -9,30 +9,28 @@ struct TSingleTest_Data
   public:
     using DataType = TSingleTest_Data;
 
-    static struct
+    struct Offsets
     {
-        dt::FieldData FirstField;
-        dt::FieldData SecondField;
-        size_t Size;
-    } Offsets;
+        static inline dt::FieldData FirstField;
+        static inline dt::FieldData SecondField;
+        static inline size_t Size;
+    };
 
   public:
-    dt::TSingle<int32_t, &Offsets.FirstField> FirstField;
-    dt::TSingle<uint64_t, &Offsets.SecondField> SecondField;
+    dt::TSingle<int32_t, &Offsets::FirstField> FirstField;
+    dt::TSingle<uint64_t, &Offsets::SecondField> SecondField;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = dt::InitializeOffsets<TSingleTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TSingleTest_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(TSingleTest_Data::Offsets) TSingleTest_Data::Offsets = {};
 
 struct TSingleTest_Constructor : TSingleTest_Data
 {

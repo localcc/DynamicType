@@ -7,44 +7,41 @@ namespace dt = DynamicType;
 struct TOptionTest_Data
 {
   public:
-    static struct
+    struct Settings
     {
-        bool IsFirstFieldPresent;
-        bool IsSecondFieldPresent;
-    } Settings;
+        static inline bool IsFirstFieldPresent;
+        static inline bool IsSecondFieldPresent;
+    };
 
-    static struct
+    struct Offsets
     {
-        dt::FieldData FirstField;
-        dt::FieldData SecondField;
-        size_t Size;
-    } Offsets;
+        static inline dt::FieldData FirstField;
+        static inline dt::FieldData SecondField;
+        static inline size_t Size;
+    };
 
   public:
-    dt::TOption<int32_t, &Offsets.FirstField, &Settings.IsFirstFieldPresent> FirstField;
-    dt::TOption<uint64_t, &Offsets.SecondField, &Settings.IsSecondFieldPresent> SecondField;
+    dt::TOption<int32_t, &Offsets::FirstField, &Settings::IsFirstFieldPresent> FirstField;
+    dt::TOption<uint64_t, &Offsets::SecondField, &Settings::IsSecondFieldPresent> SecondField;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = dt::InitializeOffsets<TOptionTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TOptionTest_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(TOptionTest_Data::Settings) TOptionTest_Data::Settings = {};
-decltype(TOptionTest_Data::Offsets) TOptionTest_Data::Offsets = {};
 
 using TOptionTest = dt::TDynamicallySized<TOptionTest_Data>;
 
 TEST(TOption, First)
 {
-    TOptionTest::Settings.IsFirstFieldPresent = true;
-    TOptionTest::Settings.IsSecondFieldPresent = false;
+    TOptionTest::Settings::IsFirstFieldPresent = true;
+    TOptionTest::Settings::IsSecondFieldPresent = false;
 
     TOptionTest::InitializeOffsets();
 
@@ -60,8 +57,8 @@ TEST(TOption, First)
 
 TEST(TOption, Second)
 {
-    TOptionTest::Settings.IsFirstFieldPresent = false;
-    TOptionTest::Settings.IsSecondFieldPresent = true;
+    TOptionTest::Settings::IsFirstFieldPresent = false;
+    TOptionTest::Settings::IsSecondFieldPresent = true;
 
     TOptionTest::InitializeOffsets();
 
@@ -77,8 +74,8 @@ TEST(TOption, Second)
 
 TEST(TOption, Third)
 {
-    TOptionTest::Settings.IsFirstFieldPresent = true;
-    TOptionTest::Settings.IsSecondFieldPresent = true;
+    TOptionTest::Settings::IsFirstFieldPresent = true;
+    TOptionTest::Settings::IsSecondFieldPresent = true;
 
     TOptionTest::InitializeOffsets();
 
@@ -104,39 +101,36 @@ struct TOptionExceptionTest_Data
   public:
     using DataType = TOptionExceptionTest_Data;
 
-    static struct
+    struct Settings
     {
-        bool FieldPresent;
-    } Settings;
-    static struct
+        static inline bool FieldPresent;
+    };
+    struct Offsets
     {
-        dt::FieldData Field;
-        size_t Size;
-    } Offsets;
+        static inline dt::FieldData Field;
+        static inline size_t Size;
+    };
 
   public:
-    dt::TOption<NonDefaultConstructible, &Offsets.Field, &Settings.FieldPresent> Field;
+    dt::TOption<NonDefaultConstructible, &Offsets::Field, &Settings::FieldPresent> Field;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = dt::InitializeOffsets<TOptionExceptionTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TOptionExceptionTest_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(TOptionExceptionTest_Data::Settings) TOptionExceptionTest_Data::Settings = {};
-decltype(TOptionExceptionTest_Data::Offsets) TOptionExceptionTest_Data::Offsets = {};
 
 using TOptionExceptionTest = dt::TDynamicallySized<TOptionExceptionTest_Data>;
 
 TEST(TOption, Exception)
 {
-    TOptionExceptionTest::Settings.FieldPresent = false;
+    TOptionExceptionTest::Settings::FieldPresent = false;
     TOptionExceptionTest::InitializeOffsets();
 
     auto Instance = DT_STACKALLOC(TOptionExceptionTest);

@@ -10,44 +10,41 @@ struct TEitherTest_Data
   public:
     using DataType = TEitherTest_Data;
 
-    static struct
+    struct Settings
     {
-        bool IsDouble;
-    } Settings;
+        static inline bool IsDouble;
+    };
 
-    static struct
+    struct Offsets
     {
-        dt::FieldData x;
-        dt::FieldData y;
-        dt::FieldData z;
-        size_t Size;
-    } Offsets;
+        static inline dt::FieldData x;
+        static inline dt::FieldData y;
+        static inline dt::FieldData z;
+        static inline size_t Size;
+    };
 
   public:
-    dt::TEither<float, double, &Offsets.x, &Settings.IsDouble> x;
-    dt::TEither<float, double, &Offsets.y, &Settings.IsDouble> y;
-    dt::TEither<float, double, &Offsets.z, &Settings.IsDouble> z;
+    dt::TEither<float, double, &Offsets::x, &Settings::IsDouble> x;
+    dt::TEither<float, double, &Offsets::y, &Settings::IsDouble> y;
+    dt::TEither<float, double, &Offsets::z, &Settings::IsDouble> z;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = dt::InitializeOffsets<TEitherTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TEitherTest_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(TEitherTest_Data::Settings) TEitherTest_Data::Settings = {};
-decltype(TEitherTest_Data::Offsets) TEitherTest_Data::Offsets = {};
 
 using TEitherTest = dt::TDynamicallySized<TEitherTest_Data>;
 
 TEST(TEither, Left)
 {
-    TEitherTest::Settings.IsDouble = false;
+    TEitherTest::Settings::IsDouble = false;
     TEitherTest::InitializeOffsets();
 
     auto Instance = DT_STACKALLOC(TEitherTest);
@@ -64,7 +61,7 @@ TEST(TEither, Left)
 
 TEST(TEither, Right)
 {
-    TEitherTest::Settings.IsDouble = true;
+    TEitherTest::Settings::IsDouble = true;
     TEitherTest::InitializeOffsets();
 
     auto Instance = DT_STACKALLOC(TEitherTest);

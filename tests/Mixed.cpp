@@ -9,48 +9,45 @@ struct TMixedTest_Data
   public:
     using DataType = TMixedTest_Data;
 
-    static struct
+    struct Settings
     {
-        bool EnableOption;
-        bool RightSelect;
-    } Settings;
+        static inline bool EnableOption;
+        static inline bool RightSelect;
+    };
 
-    static struct
+    struct Offsets
     {
-        dt::FieldData FirstOption;
-        dt::FieldData Selectable;
-        dt::FieldData SecondOption;
-        dt::FieldData Constant;
-        size_t Size;
-    } Offsets;
+        static inline dt::FieldData FirstOption;
+        static inline dt::FieldData Selectable;
+        static inline dt::FieldData SecondOption;
+        static inline dt::FieldData Constant;
+        static inline size_t Size;
+    };
 
   public:
-    dt::TOption<int64_t, &Offsets.FirstOption, &Settings.EnableOption> FirstOption;
-    dt::TEither<float, double, &Offsets.Selectable, &Settings.RightSelect> Selectable;
-    dt::TOption<int32_t, &Offsets.SecondOption, &Settings.EnableOption> SecondOption;
-    dt::TSingle<int64_t, &Offsets.Constant> Constant;
+    dt::TOption<int64_t, &Offsets::FirstOption, &Settings::EnableOption> FirstOption;
+    dt::TEither<float, double, &Offsets::Selectable, &Settings::RightSelect> Selectable;
+    dt::TOption<int32_t, &Offsets::SecondOption, &Settings::EnableOption> SecondOption;
+    dt::TSingle<int64_t, &Offsets::Constant> Constant;
 
   public:
     static void InitializeOffsets()
     {
-        Offsets.Size = dt::InitializeOffsets<TMixedTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TMixedTest_Data>();
     }
 
     static size_t DynamicSize()
     {
-        return Offsets.Size;
+        return Offsets::Size;
     }
 };
-
-decltype(TMixedTest_Data::Settings) TMixedTest_Data::Settings = {};
-decltype(TMixedTest_Data::Offsets) TMixedTest_Data::Offsets = {};
 
 using TMixedTest = dt::TDynamicallySized<TMixedTest_Data>;
 
 TEST(TMixed, Everything)
 {
-    TMixedTest::Settings.EnableOption = true;
-    TMixedTest::Settings.RightSelect = true;
+    TMixedTest::Settings::EnableOption = true;
+    TMixedTest::Settings::RightSelect = true;
 
     TMixedTest::InitializeOffsets();
 
@@ -70,8 +67,8 @@ TEST(TMixed, Everything)
 
 TEST(TMixed, NoOptions)
 {
-    TMixedTest::Settings.EnableOption = false;
-    TMixedTest::Settings.RightSelect = true;
+    TMixedTest::Settings::EnableOption = false;
+    TMixedTest::Settings::RightSelect = true;
 
     TMixedTest::InitializeOffsets();
 
@@ -87,8 +84,8 @@ TEST(TMixed, NoOptions)
 
 TEST(TMixed, LeftSelectWithOptions)
 {
-    TMixedTest::Settings.EnableOption = true;
-    TMixedTest::Settings.RightSelect = false;
+    TMixedTest::Settings::EnableOption = true;
+    TMixedTest::Settings::RightSelect = false;
 
     TMixedTest::InitializeOffsets();
 
@@ -108,8 +105,8 @@ TEST(TMixed, LeftSelectWithOptions)
 
 TEST(TMixed, LeftSelectNoOption)
 {
-    TMixedTest::Settings.EnableOption = false;
-    TMixedTest::Settings.RightSelect = false;
+    TMixedTest::Settings::EnableOption = false;
+    TMixedTest::Settings::RightSelect = false;
 
     TMixedTest::InitializeOffsets();
 
