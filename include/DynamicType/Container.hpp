@@ -1,5 +1,6 @@
 #pragma once
 #include <DynamicType/FieldWrapper.hpp>
+#include <DynamicType/Internals.hpp>
 
 #include <reflect>
 
@@ -23,9 +24,12 @@ namespace DynamicType
     constexpr bool ValidateType()
     {
         size_t FieldCount = 0;
+
+        DT_INTERNAL_PRE;
         reflect::for_each<T>([&FieldCount](auto I) {
             FieldCount += 1;
         });
+        DT_INTERNAL_POST;
 
         return (FieldCount == sizeof(T)) ? true : throw "DynamicSize type must only have type selectors as fields.";
     }
@@ -44,6 +48,7 @@ namespace DynamicType
         size_t RunningOffset = 0;
         size_t FinalSize = 0;
 
+        DT_INTERNAL_PRE;
         reflect::for_each<T>([&RunningOffset, &FinalSize](auto I) {
             auto Value = reflect::get<I>(T{});
             FieldData& Data = decltype(Value)::InitializeOffsets(RunningOffset, reflect::offset_of<I, T>());
@@ -51,6 +56,7 @@ namespace DynamicType
             RunningOffset += Data.Size;
             FinalSize = std::max(Data.Size + Data.Offset, FinalSize);
         });
+        DT_INTERNAL_POST;
 
         return FinalSize;
     }
@@ -127,6 +133,20 @@ namespace DynamicType
         {
         }
 
+        TDynamicTypeInstance(const TDynamicTypeInstance& Other) = delete;
+        TDynamicTypeInstance& operator=(const TDynamicTypeInstance& Other) = delete;
+
+        TDynamicTypeInstance(TDynamicTypeInstance&& Other) : m_Instance{std::exchange(Other.m_Instance, nullptr)}, m_Owns{std::exchange(Other.m_Owns, false)}
+        {
+        }
+
+        TDynamicTypeInstance& operator=(TDynamicTypeInstance&& Other)
+        {
+            std::swap(m_Instance, Other.m_Instance);
+            std::swap(m_Owns, Other.m_Owns);
+            return *this;
+        }
+
         ~TDynamicTypeInstance()
         {
             if (m_Instance && m_Owns)
@@ -150,6 +170,16 @@ namespace DynamicType
         }
 
       public:
+        const Value& operator*() const
+        {
+            return *m_Instance;
+        }
+
+        const Value* operator->() const
+        {
+            return m_Instance;
+        }
+
         Value& operator*()
         {
             return *m_Instance;

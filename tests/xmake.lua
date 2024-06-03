@@ -5,6 +5,8 @@ rule("test")
         target:set("kind", "binary")
         target:set("languages", "cxx23")
 
+        target:set("warnings", "all", "error")
+
         target:set("exceptions", "cxx")
 
         target:set("default", "false")
@@ -55,3 +57,4 @@ target("Nested")
 
     add_files("Nested.cpp")
     add_tests("default")
+    set_warnings("all")

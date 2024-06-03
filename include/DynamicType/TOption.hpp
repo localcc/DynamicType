@@ -1,6 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
+#include <DynamicType/Internals.hpp>
 
 #include <optional>
 
@@ -112,17 +113,8 @@ namespace DynamicType
         }
 
       public:
-        TOption()
+        DT_INTERNAL_CONSTRUCTOR TOption()
         {
-        }
-
-        TOption(T Value)
-            requires std::is_move_assignable_v<T>
-        {
-            if (*IsPresent)
-            {
-                *ReflectionData->GetValue<T, TOption>(this) = std::move(Value);
-            }
         }
 
         TOption(const TOption& Other)
@@ -142,6 +134,15 @@ namespace DynamicType
             }
             return *this;
         }
+        TOption& operator=(const T& Value)
+            requires std::is_copy_assignable_v<T>
+        {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = Value;
+            }
+            return *this;
+        }
 
         TOption(TOption&& Other)
             requires std::is_move_assignable_v<T>
@@ -157,6 +158,15 @@ namespace DynamicType
             if (*IsPresent)
             {
                 *ReflectionData->GetValue<T, TOption>(this) = std::move(*ReflectionData->GetValue<T, TOption>(&Other));
+            }
+            return *this;
+        }
+        TOption& operator=(T&& Value)
+            requires std::is_move_assignable_v<T>
+        {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = Value;
             }
             return *this;
         }

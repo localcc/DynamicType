@@ -1,6 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
+#include <DynamicType/Internals.hpp>
 
 namespace DynamicType
 {
@@ -60,7 +61,7 @@ namespace DynamicType
         }
 
       public:
-        TEither()
+        DT_INTERNAL_CONSTRUCTOR TEither()
         {
         }
 

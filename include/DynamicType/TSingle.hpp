@@ -1,6 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
+#include <DynamicType/Internals.hpp>
 
 namespace DynamicType
 {
@@ -46,14 +47,8 @@ namespace DynamicType
         }
 
       public:
-        TSingle()
+        DT_INTERNAL_CONSTRUCTOR TSingle()
         {
-        }
-
-        TSingle(T Value)
-            requires std::is_move_assignable_v<T>
-        {
-            *ReflectionData->GetValue<T, TSingle>(this) = std::move(Value);
         }
 
         TSingle(const TSingle& Other)
@@ -67,6 +62,12 @@ namespace DynamicType
             *ReflectionData->GetValue<T, TSingle>(this) = *ReflectionData->GetValue<T, TSingle>(&Other);
             return *this;
         }
+        TSingle& operator=(const T& Other)
+            requires std::is_copy_assignable_v<T>
+        {
+            *ReflectionData->GetValue<T, TSingle>(this) = Other;
+            return *this;
+        }
 
         TSingle(TSingle&& Other)
             requires std::is_move_assignable_v<T>
@@ -77,6 +78,12 @@ namespace DynamicType
             requires std::is_move_assignable_v<T>
         {
             *ReflectionData->GetValue<T, TSingle>(this) = std::move(*ReflectionData->GetValue<T, TSingle>(&Other));
+            return *this;
+        }
+        TSingle& operator=(T&& Other)
+            requires std::is_move_assignable_v<T>
+        {
+            *ReflectionData->GetValue<T, TSingle>(this) = Other;
             return *this;
         }
 

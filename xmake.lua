@@ -1,11 +1,11 @@
 add_rules("mode.debug", "mode.release")
 
-includes("deps")
-
+add_repositories("deps deps")
 add_requires("reflect")
 
 target("DynamicType")
     set_kind("headeronly")
+    set_warnings("all", "error")
     
     set_languages("cxx23")
 
