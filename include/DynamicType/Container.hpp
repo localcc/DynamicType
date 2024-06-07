@@ -1,6 +1,7 @@
 #pragma once
 #include <DynamicType/FieldWrapper.hpp>
-#include <DynamicType/Internals.hpp>
+#include <DynamicType/SafetyCookie.hpp>
+#include <DynamicType/DynamicallySizedWrapper.hpp>
 
 #include <reflect>
 
@@ -16,74 +17,43 @@
 
 namespace DynamicType
 {
-    /**
-     * @brief Validate a dynamically sized type
-     */
     template <typename T>
-        requires DynamicallySized<T>
-    constexpr bool ValidateType()
+    struct MemberPointerType;
+
+    template <typename Class, typename Value>
+    struct MemberPointerType<Value Class::*>
     {
-        size_t FieldCount = 0;
+        typedef Value type;
+    };
 
-        DT_INTERNAL_PRE;
-        reflect::for_each<T>([&FieldCount](auto I) {
-            FieldCount += 1;
-        });
-        DT_INTERNAL_POST;
-
-        return (FieldCount == sizeof(T)) ? true : throw "DynamicSize type must only have type selectors as fields.";
-    }
+    template <typename T>
+    using MemberPointerTypeT = typename MemberPointerType<T>::type;
 
     /**
      * @brief Initialize offsets of a dynamically sized type
      *
      * @return Final size of the container
      */
-    template <typename T>
-        requires DynamicallySized<T> && std::is_constructible_v<T>
-    size_t InitializeOffsets()
+    template <typename T, typename... TFields>
+        requires DynamicallySized<T>
+    size_t InitializeOffsets(TFields... Fields)
     {
-        constexpr bool Valid = ValidateType<T>();
+        static_assert(sizeof...(Fields) == sizeof(T),
+                      "DynamicSize type must only have type selectors as fields. Type selectors must be listed in order. All type selectors must be listed.");
 
         size_t RunningOffset = 0;
-        size_t FinalSize = 0;
+        size_t FieldIndex = 0;
 
-        DT_INTERNAL_PRE;
-        reflect::for_each<T>([&RunningOffset, &FinalSize](auto I) {
-            auto Value = reflect::get<I>(T{});
-            FieldData& Data = decltype(Value)::InitializeOffsets(RunningOffset, reflect::offset_of<I, T>());
+        auto InitializeField = [&RunningOffset, &FieldIndex]<typename Field>(const Field F) {
+            FieldData& Data = MemberPointerTypeT<Field>::InitializeOffsets(RunningOffset, FieldIndex);
 
+            FieldIndex += 1;
             RunningOffset += Data.Size;
-            FinalSize = std::max(Data.Size + Data.Offset, FinalSize);
-        });
-        DT_INTERNAL_POST;
+        };
 
-        return FinalSize;
-    }
+        (InitializeField(Fields), ...);
 
-    /**
-     * @brief A dynamically sized type
-     *
-     * This class is needed to wrap data storage of a type, to make it impossible to construct standalone.
-     *
-     * If the data storage class was constructed standalone it would lead to memory/logic errors
-     * as members of the storage class all have a size of 1 instead of their member size.
-     */
-    template <typename T>
-        requires DynamicallySized<T>
-    class TDynamicallySized : public T
-    {
-      public:
-        template <typename... CArgs>
-        TDynamicallySized(CArgs... Args) = delete;
-
-        using Inner = T;
-    };
-
-    namespace detail
-    {
-        template <typename T>
-        concept DynamicallySizedWrapper = std::same_as<T, TDynamicallySized<typename T::Inner>>;
+        return RunningOffset;
     }
 
     /**
@@ -95,8 +65,7 @@ namespace DynamicType
      *
      * @tparam T Underlying type
      */
-    template <typename T>
-        requires detail::DynamicallySizedWrapper<T>
+    template <DynamicallySizedWrapper T>
     class TDynamicTypeInstance
     {
       private:
@@ -107,8 +76,8 @@ namespace DynamicType
          * @brief Create a new instance of a dynamically sized type on the heap
          */
         template <typename... CArgs>
-        TDynamicTypeInstance(CArgs... Args)
-            requires std::is_constructible_v<Value, CArgs...>
+        explicit TDynamicTypeInstance(CArgs... Args)
+            requires std::is_constructible_v<Value, SafetyCookie, CArgs...>
             : m_Owns(true)
         {
             void* Instance = ::operator new(Value::DynamicSize());
@@ -118,7 +87,7 @@ namespace DynamicType
             }
 
             memset(Instance, 0, Value::DynamicSize());
-            new (Instance) Value(std::forward<CArgs>(Args)...);
+            new (Instance) Value(SafetyCookie(), std::forward<CArgs>(Args)...);
 
             m_Instance = reinterpret_cast<Value*>(Instance);
         }
@@ -129,18 +98,19 @@ namespace DynamicType
          * After constructing an instance using this constructor, the pointed object is **NOT** treated as owned,
          * meaning it won't be destroyed on destruction of this container
          */
-        TDynamicTypeInstance(Value* Instance) : m_Instance(Instance), m_Owns(false)
+        explicit TDynamicTypeInstance(Value* Instance) : m_Instance(Instance), m_Owns(false)
         {
         }
 
         TDynamicTypeInstance(const TDynamicTypeInstance& Other) = delete;
         TDynamicTypeInstance& operator=(const TDynamicTypeInstance& Other) = delete;
 
-        TDynamicTypeInstance(TDynamicTypeInstance&& Other) : m_Instance{std::exchange(Other.m_Instance, nullptr)}, m_Owns{std::exchange(Other.m_Owns, false)}
+        TDynamicTypeInstance(TDynamicTypeInstance&& Other) noexcept
+            : m_Instance{std::exchange(Other.m_Instance, nullptr)}, m_Owns{std::exchange(Other.m_Owns, false)}
         {
         }
 
-        TDynamicTypeInstance& operator=(TDynamicTypeInstance&& Other)
+        TDynamicTypeInstance& operator=(TDynamicTypeInstance&& Other) noexcept
         {
             std::swap(m_Instance, Other.m_Instance);
             std::swap(m_Owns, Other.m_Owns);
@@ -164,8 +134,9 @@ namespace DynamicType
          */
         template <typename... CArgs>
         static TDynamicTypeInstance PlacementNew(void* Data, CArgs... Args)
+            requires std::is_constructible_v<typename Value::Inner, SafetyCookie, CArgs...>
         {
-            new (Data) Value::Inner(std::forward<CArgs>(Args)...);
+            new (Data) Value::Inner(SafetyCookie(), std::forward<CArgs>(Args)...);
             return TDynamicTypeInstance(reinterpret_cast<Value*>(Data));
         }
 

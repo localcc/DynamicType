@@ -1,7 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
-#include <DynamicType/Internals.hpp>
+#include <DynamicType/SafetyCookie.hpp>
 
 namespace DynamicType
 {
@@ -47,8 +47,22 @@ namespace DynamicType
         }
 
       public:
-        DT_INTERNAL_CONSTRUCTOR TSingle()
+        explicit TSingle(SafetyCookie)
+            requires std::is_default_constructible_v<T>
         {
+            *ReflectionData->GetValue<T, TSingle>(this) = T();
+        }
+
+        explicit TSingle(SafetyCookie, const T& Value)
+            requires std::is_copy_assignable_v<T>
+        {
+            *ReflectionData->GetValue<T, TSingle>(this) = Value;
+        }
+
+        explicit TSingle(SafetyCookie, T&& Value)
+            requires std::is_move_assignable_v<T>
+        {
+            *ReflectionData->GetValue<T, TSingle>(this) = std::move(Value);
         }
 
         TSingle(const TSingle& Other)
@@ -69,12 +83,12 @@ namespace DynamicType
             return *this;
         }
 
-        TSingle(TSingle&& Other)
+        TSingle(TSingle&& Other) noexcept
             requires std::is_move_assignable_v<T>
         {
             *ReflectionData->GetValue<T, TSingle>(this) = std::move(*ReflectionData->GetValue<T, TSingle>(&Other));
         }
-        TSingle& operator=(TSingle&& Other)
+        TSingle& operator=(TSingle&& Other) noexcept
             requires std::is_move_assignable_v<T>
         {
             *ReflectionData->GetValue<T, TSingle>(this) = std::move(*ReflectionData->GetValue<T, TSingle>(&Other));

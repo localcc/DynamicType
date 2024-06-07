@@ -7,6 +7,11 @@ namespace dt = DynamicType;
 struct Item_Data
 {
   public:
+    explicit Item_Data(dt::SafetyCookie Cookie) : First(Cookie), Second(Cookie), Third(Cookie)
+    {
+    }
+
+  public:
     using DataType = Item_Data;
 
     struct Offsets
@@ -30,7 +35,8 @@ struct Item_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<Item_Data>();
+        using T = Item_Data;
+        Offsets::Size = dt::InitializeOffsets<Item_Data>(&T::First, &T::Second, &T::Third);
     }
 
     static size_t DynamicSize()
@@ -44,8 +50,11 @@ using Item = dt::TDynamicallySized<Item_Data>;
 struct Container_Data
 {
   public:
-    using DataType = Container_Data;
+    Container_Data(dt::SafetyCookie Cookie) : FirstItem(Cookie, *DT_STACKALLOC(Item)), SecondItem(Cookie, *DT_STACKALLOC(Item))
+    {
+    }
 
+  public:
     struct Offsets
     {
         static inline dt::FieldData FirstItem;
@@ -60,7 +69,8 @@ struct Container_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<Container_Data>();
+        using T = Container_Data;
+        Offsets::Size = dt::InitializeOffsets<Container_Data>(&T::FirstItem, &T::SecondItem);
     }
 
     static size_t DynamicSize()

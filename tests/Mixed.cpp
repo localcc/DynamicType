@@ -7,6 +7,11 @@ namespace dt = DynamicType;
 struct TMixedTest_Data
 {
   public:
+    explicit TMixedTest_Data(dt::SafetyCookie Cookie) : FirstOption(Cookie), Selectable(Cookie), SecondOption(Cookie), Constant(Cookie)
+    {
+    }
+
+  public:
     using DataType = TMixedTest_Data;
 
     struct Settings
@@ -33,7 +38,8 @@ struct TMixedTest_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<TMixedTest_Data>();
+        using T = TMixedTest_Data;
+        Offsets::Size = dt::InitializeOffsets<TMixedTest_Data>(&T::FirstOption, &T::Selectable, &T::SecondOption, &T::Constant);
     }
 
     static size_t DynamicSize()

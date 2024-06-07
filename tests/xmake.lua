@@ -21,7 +21,9 @@ target("TSingle")
     add_rules("test")
 
     add_files("TSingle.cpp")
-    add_tests("default")
+
+    add_tests("paramless", { runargs = "--gtest_filter=TSingle.Paramless" })
+    add_tests("params", { runargs = "--gtest_filter=TSingle.Params" })
 
 target("TOption")
     add_rules("test")

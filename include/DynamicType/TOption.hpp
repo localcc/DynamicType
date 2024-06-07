@@ -1,7 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
-#include <DynamicType/Internals.hpp>
+#include <DynamicType/SafetyCookie.hpp>
 
 #include <optional>
 
@@ -113,8 +113,31 @@ namespace DynamicType
         }
 
       public:
-        DT_INTERNAL_CONSTRUCTOR TOption()
+        explicit TOption(SafetyCookie)
+            requires std::is_default_constructible_v<T>
         {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = T();
+            }
+        }
+
+        explicit TOption(SafetyCookie, const T& Value)
+            requires std::is_copy_assignable_v<T>
+        {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = Value;
+            }
+        }
+
+        explicit TOption(SafetyCookie, T&& Value)
+            requires std::is_move_assignable_v<T>
+        {
+            if (*IsPresent)
+            {
+                *ReflectionData->GetValue<T, TOption>(this) = std::move(Value);
+            }
         }
 
         TOption(const TOption& Other)
@@ -144,7 +167,7 @@ namespace DynamicType
             return *this;
         }
 
-        TOption(TOption&& Other)
+        TOption(TOption&& Other) noexcept
             requires std::is_move_assignable_v<T>
         {
             if (*IsPresent)
@@ -152,7 +175,7 @@ namespace DynamicType
                 *ReflectionData->GetValue<T, TOption>(this) = std::move(*ReflectionData->GetValue<T, TOption>(&Other));
             }
         }
-        TOption& operator=(TOption&& Other)
+        TOption& operator=(TOption&& Other) noexcept
             requires std::is_move_assignable_v<T>
         {
             if (*IsPresent)

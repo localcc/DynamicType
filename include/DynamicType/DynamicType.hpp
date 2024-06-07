@@ -8,6 +8,7 @@
 #include <DynamicType/Types.hpp>
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
+#include <DynamicType/DynamicallySizedWrapper.hpp>
 #include <DynamicType/Container.hpp>
 #include <DynamicType/TSingle.hpp>
 #include <DynamicType/TEither.hpp>

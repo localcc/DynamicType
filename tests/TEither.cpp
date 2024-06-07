@@ -7,6 +7,14 @@ namespace dt = DynamicType;
 struct TEitherTest_Data
 {
   public:
+    explicit TEitherTest_Data(dt::SafetyCookie Cookie) : x(Cookie), y(Cookie), z(Cookie)
+    {
+        this->x.Set(0);
+        this->y.Set(0);
+        this->z.Set(0);
+    }
+
+  public:
     using DataType = TEitherTest_Data;
 
     struct Settings
@@ -30,7 +38,8 @@ struct TEitherTest_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<TEitherTest_Data>();
+        using T = TEitherTest_Data;
+        Offsets::Size = dt::InitializeOffsets<TEitherTest_Data>(&T::x, &T::y, &T::z);
     }
 
     static size_t DynamicSize()

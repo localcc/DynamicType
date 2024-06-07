@@ -7,6 +7,11 @@ namespace dt = DynamicType;
 struct TOptionTest_Data
 {
   public:
+    explicit TOptionTest_Data(dt::SafetyCookie Cookie) : FirstField(Cookie), SecondField(Cookie)
+    {
+    }
+
+  public:
     struct Settings
     {
         static inline bool IsFirstFieldPresent;
@@ -27,7 +32,7 @@ struct TOptionTest_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<TOptionTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TOptionTest_Data>(&TOptionTest_Data::FirstField, &TOptionTest_Data::SecondField);
     }
 
     static size_t DynamicSize()
@@ -99,6 +104,11 @@ struct NonDefaultConstructible
 struct TOptionExceptionTest_Data
 {
   public:
+    explicit TOptionExceptionTest_Data(dt::SafetyCookie Cookie) : Field(Cookie, NonDefaultConstructible(0))
+    {
+    }
+
+  public:
     using DataType = TOptionExceptionTest_Data;
 
     struct Settings
@@ -117,7 +127,8 @@ struct TOptionExceptionTest_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<TOptionExceptionTest_Data>();
+        using T = TOptionExceptionTest_Data;
+        Offsets::Size = dt::InitializeOffsets<TOptionExceptionTest_Data>(&T::Field);
     }
 
     static size_t DynamicSize()

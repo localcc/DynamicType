@@ -1,7 +1,7 @@
 #pragma once
 #include <DynamicType/FieldData.hpp>
 #include <DynamicType/FieldWrapper.hpp>
-#include <DynamicType/Internals.hpp>
+#include <DynamicType/SafetyCookie.hpp>
 
 namespace DynamicType
 {
@@ -61,7 +61,7 @@ namespace DynamicType
         }
 
       public:
-        DT_INTERNAL_CONSTRUCTOR TEither()
+        explicit TEither(SafetyCookie)
         {
         }
 
@@ -91,7 +91,7 @@ namespace DynamicType
             return *this;
         }
 
-        TEither(TEither&& Other)
+        TEither(TEither&& Other) noexcept
             requires std::is_move_assignable_v<T1> && std::is_move_assignable_v<T2>
         {
             if (*SwitchCondition)
@@ -103,7 +103,7 @@ namespace DynamicType
                 *ReflectionData->GetValue<T1>(this) = std::move(*ReflectionData->GetValue<T1>(&Other));
             }
         }
-        TEither& operator=(TEither&& Other)
+        TEither& operator=(TEither&& Other) noexcept
             requires std::is_move_assignable_v<T1> && std::is_move_assignable_v<T2>
         {
             if (*SwitchCondition)

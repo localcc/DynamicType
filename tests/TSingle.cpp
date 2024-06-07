@@ -1,11 +1,22 @@
 #include <DynamicType/DynamicType.hpp>
 
+#include <print>
+#include <iostream>
 #include <gtest/gtest.h>
 
 namespace dt = DynamicType;
 
 struct TSingleTest_Data
 {
+  public:
+    explicit TSingleTest_Data(dt::SafetyCookie Cookie) : FirstField(Cookie, 0), SecondField(Cookie, 0)
+    {
+    }
+
+    TSingleTest_Data(dt::SafetyCookie Cookie, int32_t FirstField, uint64_t SecondField) : FirstField(Cookie, FirstField), SecondField(Cookie, SecondField)
+    {
+    }
+
   public:
     using DataType = TSingleTest_Data;
 
@@ -23,7 +34,7 @@ struct TSingleTest_Data
   public:
     static void InitializeOffsets()
     {
-        Offsets::Size = dt::InitializeOffsets<TSingleTest_Data>();
+        Offsets::Size = dt::InitializeOffsets<TSingleTest_Data>(&TSingleTest_Data::FirstField, &TSingleTest_Data::SecondField);
     }
 
     static size_t DynamicSize()
@@ -32,22 +43,9 @@ struct TSingleTest_Data
     }
 };
 
-struct TSingleTest_Constructor : TSingleTest_Data
-{
-    TSingleTest_Constructor()
-    {
-    }
+using TSingleTest = dt::TDynamicallySized<TSingleTest_Data>;
 
-    TSingleTest_Constructor(int32_t First, int32_t Second)
-    {
-        this->FirstField = First;
-        this->SecondField = Second;
-    }
-};
-
-using TSingleTest = dt::TDynamicallySized<TSingleTest_Constructor>;
-
-TEST(TSingle, Default)
+TEST(TSingle, Paramless)
 {
     TSingleTest::InitializeOffsets();
 
@@ -57,6 +55,17 @@ TEST(TSingle, Default)
     SingleInstance->SecondField.Set(64);
 
     EXPECT_EQ(*SingleInstance->FirstField, 12);
+    EXPECT_EQ(*SingleInstance->SecondField, 64);
+    EXPECT_EQ(TSingleTest::DynamicSize(), sizeof(int32_t) + sizeof(uint64_t));
+}
+
+TEST(TSingle, Params)
+{
+    TSingleTest::InitializeOffsets();
+
+    auto SingleInstance = DT_STACKALLOC(TSingleTest, 32, 64);
+
+    EXPECT_EQ(*SingleInstance->FirstField, 32);
     EXPECT_EQ(*SingleInstance->SecondField, 64);
     EXPECT_EQ(TSingleTest::DynamicSize(), sizeof(int32_t) + sizeof(uint64_t));
 }
