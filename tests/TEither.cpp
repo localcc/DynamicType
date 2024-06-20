@@ -7,11 +7,8 @@ namespace dt = DynamicType;
 struct TEitherTest_Data
 {
   public:
-    explicit TEitherTest_Data(dt::SafetyCookie Cookie) : x(Cookie), y(Cookie), z(Cookie)
+    explicit TEitherTest_Data(dt::SafetyCookie Cookie) : x(Cookie, 0.0f), y(Cookie, 0.0f), z(Cookie, 0.0f)
     {
-        this->x.Set(0);
-        this->y.Set(0);
-        this->z.Set(0);
     }
 
   public:

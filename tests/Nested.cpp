@@ -7,7 +7,7 @@ namespace dt = DynamicType;
 struct Item_Data
 {
   public:
-    explicit Item_Data(dt::SafetyCookie Cookie) : First(Cookie), Second(Cookie), Third(Cookie)
+    explicit Item_Data(dt::SafetyCookie Cookie) : First(Cookie), Second(Cookie, 0), Third(Cookie)
     {
     }
 

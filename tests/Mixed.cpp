@@ -7,7 +7,7 @@ namespace dt = DynamicType;
 struct TMixedTest_Data
 {
   public:
-    explicit TMixedTest_Data(dt::SafetyCookie Cookie) : FirstOption(Cookie), Selectable(Cookie), SecondOption(Cookie), Constant(Cookie)
+    explicit TMixedTest_Data(dt::SafetyCookie Cookie) : FirstOption(Cookie), Selectable(Cookie, 0.0f), SecondOption(Cookie), Constant(Cookie)
     {
     }
 

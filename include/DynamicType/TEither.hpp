@@ -61,8 +61,14 @@ namespace DynamicType
         }
 
       public:
-        explicit TEither(SafetyCookie)
+        explicit TEither(SafetyCookie, T1 Value)
         {
+            Set<T1>(Value);
+        }
+
+        explicit TEither(SafetyCookie, T2 Value)
+        {
+            Set<T2>(Value);
         }
 
         TEither(const TEither& Other)
@@ -91,6 +97,19 @@ namespace DynamicType
             return *this;
         }
 
+        TEither& operator=(const T1& Other)
+            requires std::is_copy_assignable_v<T1>
+        {
+            Set<T1>(Other);
+            return *this;
+        }
+        TEither& operator=(const T2& Other)
+            requires std::is_copy_assignable_v<T2>
+        {
+            Set<T2>(Other);
+            return *this;
+        }
+
         TEither(TEither&& Other) noexcept
             requires std::is_move_assignable_v<T1> && std::is_move_assignable_v<T2>
         {
@@ -114,6 +133,19 @@ namespace DynamicType
             {
                 *ReflectionData->GetValue<T1>(this) = std::move(*ReflectionData->GetValue<T1>(&Other));
             }
+            return *this;
+        }
+
+        TEither& operator=(T1&& Other) noexcept
+            requires std::is_move_assignable_v<T1>
+        {
+            Set<T1>(std::move(Other));
+            return *this;
+        }
+        TEither& operator=(T2&& Other) noexcept
+            requires std::is_move_assignable_v<T2>
+        {
+            Set<T2>(std::move(Other));
             return *this;
         }
 
