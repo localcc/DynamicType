@@ -1,8 +1,5 @@
 add_rules("mode.debug", "mode.release")
 
-add_repositories("deps deps")
-add_requires("reflect")
-
 target("DynamicType")
     set_kind("headeronly")
     set_warnings("all", "error")
@@ -15,7 +12,5 @@ target("DynamicType")
     add_extrafiles(".clang-format")
 
     add_cxxflags("/Zc:preprocessor", { tools = { "clang_cl", "cl" }, public = true })
-
-    add_packages("reflect", { public = true })
 
 includes("tests")

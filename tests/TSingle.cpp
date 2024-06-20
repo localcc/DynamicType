@@ -1,7 +1,5 @@
 #include <DynamicType/DynamicType.hpp>
 
-#include <print>
-#include <iostream>
 #include <gtest/gtest.h>
 
 namespace dt = DynamicType;
